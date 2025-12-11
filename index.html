@@ -6,50 +6,52 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#F2F2F7">
-    <title>Bentobox</title>
+    <title>Study Tracker | BentoBoard</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Phosphor Icons (Clean, Apple-like icons) -->
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Google Fonts: Inter (Closest free web font to San Francisco) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
-            darkMode: 'media', // Uses system preference
+            darkMode: 'media',
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'Segoe UI', 'Roboto', 'sans-serif'],
-                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
                         ios: {
                             bg: '#F2F2F7',
                             card: '#FFFFFF',
                             text: '#000000',
-                            gray: '#8E8E93',
-                            blue: '#007AFF',
-                            green: '#34C759',
                             indigo: '#5856D6',
-                            orange: '#FF9500',
-                            red: '#FF3B30',
                             purple: '#AF52DE',
-                            teal: '#5AC8FA',
-                            yellow: '#FFCC00',
-                            dark: {
-                                bg: '#000000',
-                                card: '#1C1C1E',
-                                card2: '#2C2C2E',
-                                text: '#FFFFFF',
-                            }
+                            green: '#34C759',
+                            dark: { bg: '#000000', card: '#1C1C1E', text: '#FFFFFF' }
                         }
                     },
-                    boxShadow: {
-                        'ios': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
-                        'ios-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)',
+                    animation: {
+                        'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'pop': 'pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        'fade-in': 'fadeIn 0.2s ease-out',
+                    },
+                    keyframes: {
+                        slideUp: {
+                            '0%': { transform: 'translateY(100%)' },
+                            '100%': { transform: 'translateY(0)' }
+                        },
+                        pop: {
+                            '0%': { transform: 'scale(0.9)' },
+                            '100%': { transform: 'scale(1)' }
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        }
                     }
                 }
             }
@@ -57,368 +59,658 @@
     </script>
 
     <style>
-        /* iOS-like Smooth Scrolling & No Select */
+        /* APP FEEL - Disable Selection */
         body {
             -webkit-tap-highlight-color: transparent;
             -webkit-touch-callout: none;
             user-select: none;
-        }
-
-        /* Hide Scrollbar but allow scrolling */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        /* The "Squircle" Active State Animation */
-        .bento-card {
-            transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.2s ease, opacity 0.2s ease;
-        }
-        .bento-card:active {
-            transform: scale(0.96);
-            opacity: 0.8;
+            overscroll-behavior-y: none; /* Prevent bounce */
         }
         
-        /* Disabled state for coming soon apps */
-        .bento-disabled {
-            opacity: 0.6;
-            filter: grayscale(0.8);
-            cursor: not-allowed;
-            pointer-events: none;
+        /* NO SCROLLBARS */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* IOS INPUT ZOOM FIX - CRITICAL */
+        input, textarea, select {
+            font-size: 16px !important; 
         }
 
-        /* Glassmorphism for Header */
-        .glass-header {
-            background: rgba(242, 242, 247, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+        /* GLASSMORPHISM */
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
         }
         @media (prefers-color-scheme: dark) {
-            .glass-header {
-                background: rgba(0, 0, 0, 0.8);
+            .glass {
+                background: rgba(28, 28, 30, 0.85);
+                border-bottom: 1px solid rgba(255,255,255,0.1);
             }
         }
+
+        /* CHECKBOX ANIMATION */
+        .quest-checkbox:checked + div {
+            background-color: #34C759;
+            border-color: #34C759;
+        }
+        .quest-checkbox:checked + div i {
+            transform: scale(1);
+        }
         
-        /* Modal Transition */
-        #setup-modal {
-            transition: opacity 0.3s ease;
+        /* CONFETTI (Simple CSS particle) */
+        .confetti {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #f00;
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
         }
     </style>
 </head>
-<body class="bg-ios-bg dark:bg-ios-dark-bg text-ios-text dark:text-ios-dark-text font-sans antialiased min-h-screen pb-safe-offset">
+<body class="bg-ios-bg dark:bg-ios-dark-bg text-ios-text dark:text-ios-dark-text font-sans h-[100dvh] flex flex-col overflow-hidden">
 
-    <!-- Status Bar Spacer (for mobile standalone mode) -->
-    <div class="h-safe-top w-full"></div>
-
-    <!-- Main Container -->
-    <div class="max-w-md mx-auto px-5 pt-8 pb-12">
-        
-        <!-- Header -->
-        <header class="mb-6 flex justify-between items-end animate-fade-in-down">
+    <!-- HEADER -->
+    <header class="glass fixed top-0 w-full z-40 pt-safe-top h-16 flex items-center justify-between px-5 transition-all">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md">
+                <i class="ph-fill ph-chart-line-up text-lg"></i>
+            </div>
             <div>
-                <p id="date-display" class="text-ios-gray font-semibold text-xs uppercase tracking-wide mb-1">Loading...</p>
-                <h1 id="greeting" class="text-3xl font-bold tracking-tight">Dashboard</h1>
+                <h1 class="font-bold text-sm leading-none">Study Tracker</h1>
+                <p class="text-[10px] text-gray-500 font-medium">Quest Edition</p>
             </div>
-            <!-- Settings / User Placeholder -->
-            <button onclick="changeName()" class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden shadow-sm flex items-center justify-center transition-colors hover:bg-gray-300 dark:hover:bg-gray-600">
-                <i class="ph-fill ph-user text-gray-400 dark:text-gray-500 text-xl"></i>
-            </button>
-        </header>
+        </div>
+        <button onclick="openDataModal()" class="w-8 h-8 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-zinc-700 transition-colors">
+            <i class="ph-fill ph-shield-check text-lg"></i>
+        </button>
+    </header>
 
-        <!-- GRID LAYOUT -->
-        <div class="grid grid-cols-2 gap-4">
-
-            <!-- TIER 1: MAIN APPS (Large Cards) -->
+    <!-- MAIN CONTENT -->
+    <main id="mainView" class="flex-grow pt-20 pb-24 px-5 overflow-y-auto no-scrollbar relative w-full max-w-lg mx-auto">
+        
+        <!-- HERO: LEVEL & XP -->
+        <div class="bg-white dark:bg-ios-dark-card rounded-[24px] p-5 shadow-sm mb-6 relative overflow-hidden">
+            <!-- Background Decoration -->
+            <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 dark:bg-indigo-900/20 rounded-bl-full -mr-8 -mt-8 pointer-events-none"></div>
             
-            <!-- GradeVault (Full Width) -->
-            <a href="https://darylmilanes.com/GradeVault" target="_blank" class="col-span-2 bento-card group relative overflow-hidden rounded-[24px] bg-white dark:bg-ios-dark-card shadow-ios h-40 p-5 flex flex-col justify-between decoration-transparent">
-                <!-- Decorative Background Gradient -->
-                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-100 to-emerald-50 dark:from-green-900/20 dark:to-transparent rounded-full blur-2xl -mr-10 -mt-10 opacity-70"></div>
-                
-                <div class="flex justify-between items-start z-10">
-                    <div class="bg-green-100 dark:bg-green-900/30 w-10 h-10 rounded-full flex items-center justify-center text-ios-green">
-                        <i class="ph-fill ph-shield-check text-xl"></i>
+            <div class="relative z-10">
+                <div class="flex justify-between items-end mb-2">
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Current Status</p>
+                        <h2 id="levelTitle" class="text-2xl font-black text-indigo-600 dark:text-indigo-400">Level 1 Novice</h2>
                     </div>
-                    <i class="ph-bold ph-arrow-up-right text-gray-300 group-hover:text-gray-400 transition-colors"></i>
-                </div>
-                
-                <div class="z-10">
-                    <h2 class="text-xl font-bold leading-tight">GradeVault</h2>
-                    <p class="text-ios-gray text-sm mt-1">Student-Teacher Portal</p>
-                </div>
-            </a>
-
-            <!-- Lesson Dashboard (Half Width) -->
-            <a href="https://darylmilanes.com/lesson_dashboard" target="_blank" class="col-span-1 bento-card group rounded-[24px] bg-white dark:bg-ios-dark-card shadow-ios aspect-square p-4 flex flex-col justify-between decoration-transparent relative overflow-hidden">
-                <div class="absolute bottom-0 right-0 w-20 h-20 bg-blue-50 dark:bg-blue-900/10 rounded-full blur-xl -mr-5 -mb-5"></div>
-                
-                <div class="bg-blue-100 dark:bg-blue-900/30 w-9 h-9 rounded-full flex items-center justify-center text-ios-blue z-10">
-                    <i class="ph-fill ph-chalkboard-teacher text-lg"></i>
-                </div>
-                <div class="z-10">
-                    <h3 class="font-bold text-lg leading-tight">Lessons</h3>
-                    <p class="text-xs text-ios-gray mt-0.5">Dashboard</p>
-                </div>
-            </a>
-
-            <!-- Class Schedule (Half Width) -->
-            <a href="https://darylmilanes.com/class-schedule" target="_blank" class="col-span-1 bento-card group rounded-[24px] bg-white dark:bg-ios-dark-card shadow-ios aspect-square p-4 flex flex-col justify-between decoration-transparent relative overflow-hidden">
-                 <div class="absolute bottom-0 left-0 w-20 h-20 bg-orange-50 dark:bg-orange-900/10 rounded-full blur-xl -ml-5 -mb-5"></div>
-
-                <div class="bg-orange-100 dark:bg-orange-900/30 w-9 h-9 rounded-full flex items-center justify-center text-ios-orange z-10">
-                    <i class="ph-fill ph-calendar text-lg"></i>
-                </div>
-                <div class="z-10">
-                    <h3 class="font-bold text-lg leading-tight">Schedule</h3>
-                    <p class="text-xs text-ios-gray mt-0.5" id="schedule-day">Today</p>
-                </div>
-            </a>
-
-
-            <!-- TIER 2: ACADEMIC TOOLS (App Icons Row) -->
-            
-            <div class="col-span-2 mt-6">
-                <h4 class="text-xs font-semibold text-ios-gray uppercase tracking-wider ml-1 mb-3">Academic Tools</h4>
-                <div class="flex justify-between px-1 gap-2">
-                    
-                    <!-- 1. CareerMode (Active) -->
-                    <a href="https://darylmilanes.com/careermode/" target="_blank" class="flex flex-col items-center gap-2 w-1/4 bento-card relative">
-                        <div class="w-[56px] h-[56px] rounded-[14px] bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white shadow-md">
-                            <i class="ph-fill ph-briefcase text-2xl"></i>
-                        </div>
-                        <span class="text-[10px] font-medium text-center leading-tight">Career<br>Mode</span>
-                    </a>
-
-                    <!-- 2. Study Tracker (Disabled) -->
-                    <div class="flex flex-col items-center gap-2 w-1/4 bento-disabled relative">
-                        <div class="w-[56px] h-[56px] rounded-[14px] bg-gradient-to-br from-ios-indigo to-purple-600 flex items-center justify-center text-white shadow-md">
-                            <i class="ph-fill ph-chart-line-up text-2xl"></i>
-                        </div>
-                        <span class="text-[10px] font-medium text-center leading-tight">Study<br>Tracker</span>
-                        <div class="absolute top-0 right-1 bg-gray-200 dark:bg-gray-700 text-[8px] font-bold px-1.5 py-0.5 rounded-full text-gray-500 shadow-sm">SOON</div>
+                    <div class="text-right">
+                        <span id="xpDisplay" class="text-xs font-bold text-gray-500">0 / 100 XP</span>
                     </div>
-
-                    <!-- 3. Quiz Gen (Active) -->
-                    <a href="https://darylmilanes.com/quizgen" target="_blank" class="flex flex-col items-center gap-2 w-1/4 bento-card relative">
-                        <div class="w-[56px] h-[56px] rounded-[14px] bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white shadow-md">
-                            <i class="ph-fill ph-lightning text-2xl"></i>
-                        </div>
-                        <span class="text-[10px] font-medium text-center leading-tight">Quiz<br>Gen</span>
-                    </a>
-
-                    <!-- 4. Writing Lab (Active) -->
-                    <a href="https://darylmilanes.com/writinglab/" target="_blank" class="flex flex-col items-center gap-2 w-1/4 bento-card relative">
-                        <div class="w-[56px] h-[56px] rounded-[14px] bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white shadow-md">
-                            <i class="ph-fill ph-pen-nib text-2xl"></i>
-                        </div>
-                        <span class="text-[10px] font-medium text-center leading-tight">Writing<br>Lab</span>
-                    </a>
-
                 </div>
-            </div>
-
-
-            <!-- TIER 3: GAME (Full Width Banner) -->
-            
-            <div class="col-span-2 mt-4">
-                <a href="https://darylmilanes.com/game-letsvaultin/" target="_blank" class="bento-card relative overflow-hidden rounded-[20px] h-32 flex items-center justify-center shadow-ios text-white">
-                    <!-- Game Background -->
-                    <div class="absolute inset-0 bg-gradient-to-r from-violet-600 via-fuchsia-500 to-orange-400"></div>
-                    <!-- Pattern/Texture overlay -->
-                    <div class="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMSI+PHBhdGggZD0iTTAgMjBMMjAgME0xMCAyMEwyMCAxME0wIDEwTDEwIDAiLz48L3N2Zz4=')]"></div>
-                    
-                    <div class="z-10 text-center">
-                        <div class="flex items-center justify-center gap-2 mb-1">
-                            <i class="ph-fill ph-game-controller text-2xl drop-shadow-md"></i>
-                            <h3 class="text-2xl font-black tracking-tight drop-shadow-md italic">Let's Vault In!</h3>
-                        </div>
-                        <p class="text-xs font-medium opacity-90 drop-shadow-sm uppercase tracking-widest">Gamified Quiz</p>
-                    </div>
-                </a>
-            </div>
-
-            <!-- SEPARATOR LINE -->
-            <div class="col-span-2 mt-8 px-2">
-                <hr class="border-gray-200 dark:border-zinc-800/60 border-1">
-            </div>
-
-            <!-- TIER 4: INSPIRATION & WELLNESS (Low-Key Extras) -->
-            
-            <div class="col-span-2 mt-2 mb-4">
-                <h4 class="text-xs font-semibold text-ios-gray uppercase tracking-wider ml-4 mb-2">Inspiration & Wellness</h4>
                 
-                <div class="bg-white dark:bg-ios-dark-card rounded-[18px] overflow-hidden shadow-sm">
-                    
-                    <!-- 1. Beyond Aware -->
-                    <a href="https://darylmilanes.com/beyond-aware/" target="_blank" class="flex items-center gap-3 p-3 pl-4 active:bg-gray-100 dark:active:bg-gray-800 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0">
-                        <div class="w-7 h-7 rounded bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center text-ios-teal text-sm">
-                            <i class="ph-fill ph-plant"></i>
-                        </div>
-                        <span class="text-sm font-medium flex-grow">Beyond Aware</span>
-                        <i class="ph-bold ph-caret-right text-gray-300 text-xs mr-2"></i>
-                    </a>
-
-                    <!-- 2. The Series: Guide -->
-                    <a href="https://guide.darylmilanes.com/" target="_blank" class="flex items-center gap-3 p-3 pl-4 active:bg-gray-100 dark:active:bg-gray-800 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0">
-                        <div class="w-7 h-7 rounded bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-ios-red text-sm">
-                            <i class="ph-fill ph-compass"></i>
-                        </div>
-                        <span class="text-sm font-medium flex-grow">Guide Center</span>
-                        <i class="ph-bold ph-caret-right text-gray-300 text-xs mr-2"></i>
-                    </a>
-
-                    <!-- 3. The Series: Overview -->
-                    <a href="https://overview.darylmilanes.com/" target="_blank" class="flex items-center gap-3 p-3 pl-4 active:bg-gray-100 dark:active:bg-gray-800 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0">
-                        <div class="w-7 h-7 rounded bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-ios-yellow text-sm">
-                            <i class="ph-fill ph-binoculars"></i>
-                        </div>
-                        <span class="text-sm font-medium flex-grow">Overview Room</span>
-                        <i class="ph-bold ph-caret-right text-gray-300 text-xs mr-2"></i>
-                    </a>
-
-                    <!-- 4. The Series: Discover -->
-                    <a href="https://discover.darylmilanes.com/" target="_blank" class="flex items-center gap-3 p-3 pl-4 active:bg-gray-100 dark:active:bg-gray-800 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0">
-                        <div class="w-7 h-7 rounded bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-ios-purple text-sm">
-                            <i class="ph-fill ph-lightbulb"></i>
-                        </div>
-                        <span class="text-sm font-medium flex-grow">Discover Library</span>
-                        <i class="ph-bold ph-caret-right text-gray-300 text-xs mr-2"></i>
-                    </a>
-
-                    <!-- 5. Scripture Pick -->
-                    <a href="https://darylmilanes.com/pick-a-verse/" target="_blank" class="flex items-center gap-3 p-3 pl-4 active:bg-gray-100 dark:active:bg-gray-800 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0">
-                        <div class="w-7 h-7 rounded bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-ios-indigo text-sm">
-                            <i class="ph-fill ph-book-open-text"></i>
-                        </div>
-                        <span class="text-sm font-medium flex-grow">Scripture Pick</span>
-                        <i class="ph-bold ph-caret-right text-gray-300 text-xs mr-2"></i>
-                    </a>
-
+                <!-- XP Bar -->
+                <div class="h-3 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                    <div id="xpBar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 w-0 transition-all duration-500 ease-out"></div>
                 </div>
+                <p class="text-[10px] text-gray-400 mt-2 italic" id="motivationText">Complete quests to level up!</p>
             </div>
-
         </div>
 
-        <!-- Footer -->
-        <footer class="mt-8 text-center pb-8">
-            <p class="text-[10px] text-gray-400 dark:text-gray-600 uppercase tracking-widest font-semibold">BentoBoard by Daryl Milanes</p>
-        </footer>
+        <!-- REALMS (SUBJECTS) GRID -->
+        <div class="flex items-center justify-between mb-3 px-1">
+            <h3 class="font-bold text-gray-500 text-xs uppercase tracking-wider">Your Realms</h3>
+            <span class="text-[10px] text-gray-400 bg-gray-100 dark:bg-zinc-800 px-2 py-0.5 rounded">Subjects</span>
+        </div>
 
+        <div id="realmsContainer" class="grid grid-cols-1 gap-4 pb-20">
+            <!-- Realms injected via JS -->
+            <div class="text-center py-10 opacity-50">
+                <i class="ph-duotone ph-scroll text-4xl mb-2 text-indigo-300"></i>
+                <p class="text-sm font-medium text-gray-500">No realms found.</p>
+                <p class="text-xs text-gray-400">Tap + to start your journey.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FAB (Floating Action Button) -->
+    <button onclick="openAddRealmModal()" class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full shadow-lg shadow-indigo-500/40 text-white flex items-center justify-center active:scale-90 transition-transform z-30">
+        <i class="ph-bold ph-plus text-2xl"></i>
+    </button>
+
+    <!-- MODAL: ADD REALM -->
+    <div id="addRealmModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm hidden opacity-0 transition-opacity">
+        <div class="bg-white dark:bg-zinc-900 w-full max-w-sm sm:rounded-[24px] rounded-t-[24px] p-6 shadow-2xl transform translate-y-full sm:translate-y-0 transition-transform duration-300" id="addRealmCard">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">New Realm</h3>
+                <button onclick="closeAddRealmModal()" class="w-8 h-8 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center"><i class="ph-bold ph-x"></i></button>
+            </div>
+            
+            <p class="text-xs text-gray-500 mb-2">Name your subject (e.g. Math, History)</p>
+            <input type="text" id="newRealmName" placeholder="Realm Name..." class="w-full bg-gray-50 dark:bg-zinc-800 p-4 rounded-xl font-bold outline-none border-2 border-transparent focus:border-indigo-500 transition-colors mb-4">
+            
+            <button onclick="createNewRealm()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl active:scale-95 transition-transform">Create Realm</button>
+        </div>
     </div>
 
-    <!-- WELCOME / NAME SETUP MODAL -->
-    <div id="setup-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm hidden">
-        <div class="bg-white dark:bg-zinc-800 w-[85%] max-w-xs p-6 rounded-[24px] shadow-2xl text-center transform transition-all scale-100">
-            <div class="w-12 h-12 bg-ios-blue/10 text-ios-blue rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="ph-fill ph-hand-waving text-2xl"></i>
-            </div>
-            <h3 class="text-xl font-bold mb-2">Welcome!</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">What should I call you?</p>
-            
-            <input type="text" id="name-input" class="w-full bg-gray-100 dark:bg-zinc-700/50 border-none rounded-xl px-4 py-3 text-center text-lg font-medium focus:ring-2 focus:ring-ios-blue focus:outline-none mb-5" placeholder="Your Name" autocomplete="off">
-            
-            <button onclick="saveNameFromModal()" class="w-full bg-ios-blue text-white font-bold py-3.5 rounded-xl active:opacity-90 transition-opacity text-sm">
-                Get Started
+    <!-- MODAL: REALM DETAILS (QUEST LIST) -->
+    <div id="realmDetailModal" class="fixed inset-0 z-50 bg-ios-bg dark:bg-ios-dark-bg hidden flex flex-col transition-transform translate-x-full duration-300">
+        <!-- Detail Header -->
+        <div class="glass px-5 py-4 flex items-center justify-between flex-shrink-0">
+            <button onclick="closeRealmDetail()" class="flex items-center gap-1 text-indigo-600 font-medium active:opacity-50">
+                <i class="ph-bold ph-caret-left text-lg"></i> Back
+            </button>
+            <h2 id="detailTitle" class="font-bold text-lg">Realm Name</h2>
+            <button id="deleteRealmBtn" onclick="deleteCurrentRealm()" class="text-red-400 p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1">
+                <i class="ph-bold ph-trash text-lg"></i>
             </button>
         </div>
+
+        <!-- Detail Content -->
+        <div class="flex-grow overflow-y-auto px-5 pt-6 pb-24 relative">
+            
+            <!-- Progress for this Realm -->
+            <div class="bg-white dark:bg-zinc-900 p-4 rounded-2xl mb-6 shadow-sm">
+                <div class="flex justify-between text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                    <span>Quest Progress</span>
+                    <span id="realmProgressText">0/0</span>
+                </div>
+                <div class="h-2 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                    <div id="realmProgressBar" class="h-full bg-green-500 w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+
+            <!-- Add Quest Input -->
+            <div class="flex gap-2 mb-6">
+                <input type="text" id="newQuestInput" placeholder="Add new quest..." class="flex-grow bg-white dark:bg-zinc-900 p-3 rounded-xl shadow-sm outline-none border-2 border-transparent focus:border-indigo-500 transition-colors">
+                <button onclick="addQuest()" class="bg-indigo-600 text-white w-12 rounded-xl flex items-center justify-center shadow-sm active:scale-95 transition-transform">
+                    <i class="ph-bold ph-plus text-xl"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-gray-400 font-bold uppercase mb-3 ml-1">Active Quests</p>
+            <div id="activeQuests" class="space-y-3 mb-6"></div>
+
+            <p class="text-xs text-gray-400 font-bold uppercase mb-3 ml-1 opacity-60">Completed Log</p>
+            <div id="completedQuests" class="space-y-3 opacity-60"></div>
+
+        </div>
+    </div>
+
+    <!-- MODAL: DATA VAULT (Backup/Restore) -->
+    <div id="dataModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm hidden opacity-0 transition-opacity">
+        <div class="bg-white dark:bg-zinc-900 w-[90%] max-w-sm rounded-[24px] p-6 shadow-2xl relative">
+            <button onclick="closeDataModal()" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center"><i class="ph-bold ph-x"></i></button>
+            
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="ph-fill ph-safe text-2xl"></i>
+                </div>
+                <h3 class="font-bold text-xl">Data Vault</h3>
+                <p class="text-xs text-gray-500 mt-1 max-w-[200px] mx-auto">
+                    Prevent data loss by saving a backup file to your device.
+                </p>
+            </div>
+
+            <div class="space-y-3">
+                <!-- Export -->
+                <button onclick="downloadBackup()" class="w-full bg-indigo-600 text-white p-4 rounded-xl flex items-center gap-3 shadow-lg shadow-indigo-500/20 active:scale-95 transition-transform">
+                    <i class="ph-bold ph-download-simple text-xl"></i>
+                    <div class="text-left">
+                        <div class="font-bold text-sm">Save Backup File</div>
+                        <div class="text-[10px] opacity-80">Downloads .json to device</div>
+                    </div>
+                </button>
+
+                <!-- Import -->
+                <div class="relative">
+                    <input type="file" id="restoreInput" accept=".json" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="restoreBackup(this)">
+                    <button class="w-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 p-4 rounded-xl flex items-center gap-3 active:scale-95 transition-transform">
+                        <i class="ph-bold ph-upload-simple text-xl"></i>
+                        <div class="text-left">
+                            <div class="font-bold text-sm">Restore from File</div>
+                            <div class="text-[10px] opacity-60">Overwrites current data</div>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Copy String -->
+                <button onclick="copyDataString()" class="w-full bg-transparent border border-gray-200 dark:border-zinc-700 text-gray-500 p-3 rounded-xl flex items-center justify-center gap-2 text-xs font-bold active:scale-95 transition-transform">
+                    <i class="ph-bold ph-copy"></i> Copy Data String
+                </button>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800 text-center">
+                <button id="hardResetBtn" onclick="hardReset()" class="w-full py-3 text-red-400 font-bold uppercase text-[10px] rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-trash"></i> Hard Reset (Clear All)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-zinc-800 dark:bg-white text-white dark:text-black px-5 py-3 rounded-full shadow-2xl text-xs font-bold flex items-center gap-2 z-[70] translate-y-[-100px] transition-transform duration-300">
+        <i class="ph-fill ph-check-circle text-green-500 text-lg"></i>
+        <span id="toastMsg">Action Successful</span>
     </div>
 
     <script>
-        // 1. Dynamic Date Display
-        function updateDate() {
-            const dateElement = document.getElementById('date-display');
-            const now = new Date();
-            const options = { weekday: 'long', month: 'long', day: 'numeric' };
-            dateElement.textContent = now.toLocaleDateString('en-US', options);
-        }
-
-        // 2. Smart Greeting (Uses LocalStorage or Generic)
-        function updateGreeting() {
-            const greetingElement = document.getElementById('greeting');
-            const hour = new Date().getHours();
-            let timeGreeting = 'Hello';
-
-            if (hour >= 5 && hour < 12) {
-                timeGreeting = 'Good Morning';
-            } else if (hour >= 12 && hour < 18) {
-                timeGreeting = 'Good Afternoon';
-            } else {
-                timeGreeting = 'Good Evening';
-            }
-
-            // Check if user has a stored name
-            const storedName = localStorage.getItem('bentobox_user_name');
-            
-            if (storedName) {
-                greetingElement.textContent = `${timeGreeting}, ${storedName}`;
-            } else {
-                // Generic fallback if no name is set
-                greetingElement.textContent = `${timeGreeting}`;
-            }
-        }
+        // --- CONSTANTS & STATE ---
+        const APP_KEY = 'study_tracker_data_v1';
         
-        // 3. Check for name on load
-        function checkFirstVisit() {
-            // Check if we've explicitly marked this device as visited
-            const hasVisited = localStorage.getItem('bentobox_visited');
-            // Also check for name just in case (backward compatibility)
-            const storedName = localStorage.getItem('bentobox_user_name');
+        const LEVELS = [
+            { xp: 0, title: "Novice" },
+            { xp: 100, title: "Apprentice" },
+            { xp: 300, title: "Scholar" },
+            { xp: 600, title: "Sage" },
+            { xp: 1000, title: "Grandmaster" }
+        ];
+
+        let data = {
+            realms: [] // { id, name, created, quests: [] }
+        };
+
+        let currentRealmId = null;
+        let deleteTimer = null; // For double-tap confirmations
+
+        // --- INIT ---
+        function init() {
+            const stored = localStorage.getItem(APP_KEY);
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    data.realms = parsed.realms || [];
+                } catch(e) { console.error("Data parse error"); }
+            }
+            renderDashboard();
+        }
+
+        function saveData() {
+            const toSave = { realms: data.realms };
+            localStorage.setItem(APP_KEY, JSON.stringify(toSave));
+            renderDashboard();
+        }
+
+        function calculateTotalXP() {
+            let total = 0;
+            data.realms.forEach(realm => {
+                // Ensure we only count based on EXISTING quests
+                // This prevents "XP farming" where user deletes and re-adds tasks
+                const completedCount = realm.quests.filter(q => q.done).length;
+                total += completedCount * 10;
+            });
+            return total;
+        }
+
+        // --- DASHBOARD LOGIC ---
+        function renderDashboard() {
+            const currentXP = calculateTotalXP();
+
+            // 1. Calculate Level
+            let currentLevel = LEVELS[0];
+            let nextLevelXp = LEVELS[1].xp;
             
-            // Only show if they haven't visited AND don't have a name
-            if (!hasVisited && !storedName) {
-                const modal = document.getElementById('setup-modal');
-                modal.classList.remove('hidden');
-                setTimeout(() => document.getElementById('name-input').focus(), 100);
+            for (let i = 0; i < LEVELS.length; i++) {
+                if (currentXP >= LEVELS[i].xp) {
+                    currentLevel = LEVELS[i];
+                    nextLevelXp = LEVELS[i+1] ? LEVELS[i+1].xp : 10000;
+                }
+            }
+
+            // Update UI
+            document.getElementById('levelTitle').innerText = `Level ${LEVELS.indexOf(currentLevel) + 1} ${currentLevel.title}`;
+            document.getElementById('xpDisplay').innerText = `${currentXP} / ${nextLevelXp} XP`;
+            
+            // Calc XP Bar Width
+            const levelBase = currentLevel.xp;
+            const progress = currentXP - levelBase;
+            const span = nextLevelXp - levelBase;
+            const pct = Math.min(100, Math.max(0, (progress / span) * 100));
+            document.getElementById('xpBar').style.width = `${pct}%`;
+
+            // 2. Render Realms
+            const container = document.getElementById('realmsContainer');
+            container.innerHTML = '';
+
+            if (data.realms.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 opacity-50">
+                        <div class="w-16 h-16 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-3 text-indigo-300">
+                            <i class="ph-duotone ph-map-trifold text-3xl"></i>
+                        </div>
+                        <p class="text-sm font-bold text-gray-500">No Realms Discovered</p>
+                        <p class="text-xs text-gray-400 mt-1">Add a subject to begin your quest.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            data.realms.forEach(realm => {
+                const total = realm.quests.length;
+                const done = realm.quests.filter(q => q.done).length;
+                const progress = total === 0 ? 0 : Math.round((done / total) * 100);
+
+                const div = document.createElement('div');
+                div.className = 'bg-white dark:bg-ios-dark-card p-5 rounded-[20px] shadow-sm active:scale-[0.98] transition-transform cursor-pointer relative overflow-hidden group';
+                div.onclick = () => openRealmDetail(realm.id);
+                
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-500 font-bold text-lg">
+                                ${realm.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg leading-tight">${realm.name}</h3>
+                                <p class="text-[10px] text-gray-400 font-medium">${done}/${total} Quests Complete</p>
+                            </div>
+                        </div>
+                        <i class="ph-bold ph-caret-right text-gray-300"></i>
+                    </div>
+                    
+                    <div class="h-1.5 w-full bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden relative z-10">
+                        <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" style="width: ${progress}%"></div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // --- REALM ACTIONS ---
+        function openAddRealmModal() {
+            const m = document.getElementById('addRealmModal');
+            const c = document.getElementById('addRealmCard');
+            document.getElementById('newRealmName').value = '';
+            
+            m.classList.remove('hidden');
+            setTimeout(() => {
+                m.classList.remove('opacity-0');
+                c.classList.remove('translate-y-full'); 
+            }, 10);
+            
+            setTimeout(() => document.getElementById('newRealmName').focus(), 100);
+        }
+
+        function closeAddRealmModal() {
+            const m = document.getElementById('addRealmModal');
+            const c = document.getElementById('addRealmCard');
+            c.classList.add('translate-y-full');
+            m.classList.add('opacity-0');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
+
+        function createNewRealm() {
+            const name = document.getElementById('newRealmName').value.trim();
+            if (!name) return;
+
+            const newRealm = {
+                id: Date.now().toString(),
+                name: name,
+                created: Date.now(),
+                quests: []
+            };
+
+            data.realms.unshift(newRealm);
+            saveData();
+            closeAddRealmModal();
+            showToast('Realm Created');
+        }
+
+        function deleteCurrentRealm() {
+            if (!currentRealmId) return;
+            const btn = document.getElementById('deleteRealmBtn');
+            
+            // Double Tap Logic to replace confirm()
+            if (btn.getAttribute('data-confirm') === 'true') {
+                // Second Tap - Delete
+                data.realms = data.realms.filter(r => r.id !== currentRealmId);
+                saveData(); 
+                closeRealmDetail();
+                showToast("Realm Deleted");
+                
+                // Reset Btn
+                btn.removeAttribute('data-confirm');
+                btn.innerHTML = '<i class="ph-bold ph-trash text-lg"></i>';
+                btn.classList.remove('bg-red-500', 'text-white');
+                btn.classList.add('text-red-400');
+            } else {
+                // First Tap - Ask
+                btn.setAttribute('data-confirm', 'true');
+                btn.innerHTML = '<span class="text-xs font-bold px-2">Sure?</span>';
+                btn.classList.remove('text-red-400');
+                btn.classList.add('bg-red-500', 'text-white');
+                
+                // Timeout reset
+                clearTimeout(deleteTimer);
+                deleteTimer = setTimeout(() => {
+                    btn.removeAttribute('data-confirm');
+                    btn.innerHTML = '<i class="ph-bold ph-trash text-lg"></i>';
+                    btn.classList.remove('bg-red-500', 'text-white');
+                    btn.classList.add('text-red-400');
+                }, 3000);
             }
         }
 
-        // 4. Save name from Modal
-        function saveNameFromModal() {
-            const input = document.getElementById('name-input');
-            const name = input.value.trim();
-            const modal = document.getElementById('setup-modal');
+        // --- DETAIL VIEW LOGIC ---
+        function openRealmDetail(id) {
+            currentRealmId = id;
+            renderDetailView();
+            const modal = document.getElementById('realmDetailModal');
             
-            // CRITICAL: Mark device as visited so this modal never auto-appears again
-            localStorage.setItem('bentobox_visited', 'true');
+            // Reset delete button state
+            const btn = document.getElementById('deleteRealmBtn');
+            btn.removeAttribute('data-confirm');
+            btn.innerHTML = '<i class="ph-bold ph-trash text-lg"></i>';
+            btn.classList.remove('bg-red-500', 'text-white');
+            btn.classList.add('text-red-400');
+
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.remove('translate-x-full'), 10);
+        }
+
+        function closeRealmDetail() {
+            const modal = document.getElementById('realmDetailModal');
+            modal.classList.add('translate-x-full');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+            currentRealmId = null;
+        }
+
+        function renderDetailView() {
+            const realm = data.realms.find(r => r.id === currentRealmId);
+            if (!realm) return;
+
+            document.getElementById('detailTitle').innerText = realm.name;
             
-            if (name) {
-                localStorage.setItem('bentobox_user_name', name);
-                updateGreeting();
+            // Progress
+            const total = realm.quests.length;
+            const done = realm.quests.filter(q => q.done).length;
+            document.getElementById('realmProgressText').innerText = `${done}/${total}`;
+            const pct = total === 0 ? 0 : (done/total)*100;
+            document.getElementById('realmProgressBar').style.width = `${pct}%`;
+
+            // Lists
+            const activeContainer = document.getElementById('activeQuests');
+            const doneContainer = document.getElementById('completedQuests');
+            activeContainer.innerHTML = '';
+            doneContainer.innerHTML = '';
+
+            realm.quests.forEach((quest, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-3 bg-white dark:bg-zinc-900 p-3 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm';
+                
+                div.innerHTML = `
+                    <label class="relative flex items-center cursor-pointer">
+                        <input type="checkbox" class="quest-checkbox sr-only" ${quest.done ? 'checked' : ''} onchange="toggleQuest(${index})">
+                        <div class="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-zinc-600 flex items-center justify-center transition-colors">
+                            <i class="ph-bold ph-check text-white text-xs transform scale-0 transition-transform"></i>
+                        </div>
+                    </label>
+                    <span class="text-sm font-medium ${quest.done ? 'line-through text-gray-400' : ''}">${quest.text}</span>
+                    <button onclick="event.stopPropagation(); deleteQuest(${index})" class="ml-auto text-gray-300 hover:text-red-400 p-2"><i class="ph-bold ph-x text-lg"></i></button>
+                `;
+
+                if(quest.done) doneContainer.appendChild(div);
+                else activeContainer.appendChild(div);
+            });
+
+            if(activeContainer.children.length === 0) activeContainer.innerHTML = `<p class="text-[10px] text-gray-400 italic pl-1">No active quests.</p>`;
+        }
+
+        function addQuest() {
+            const input = document.getElementById('newQuestInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const realm = data.realms.find(r => r.id === currentRealmId);
+            realm.quests.push({ text: text, done: false, created: Date.now() });
+            
+            input.value = '';
+            saveData();
+            renderDetailView();
+        }
+
+        function toggleQuest(index) {
+            const realm = data.realms.find(r => r.id === currentRealmId);
+            const quest = realm.quests[index];
+            quest.done = !quest.done;
+
+            if (quest.done) {
+                confettiEffect();
+                showToast("+10 XP");
             }
+
+            saveData(); // XP updates based on current state
+            renderDetailView();
+        }
+
+        function deleteQuest(index) {
+            const realm = data.realms.find(r => r.id === currentRealmId);
+            realm.quests.splice(index, 1);
+            saveData(); // XP updates based on current state (removed quest = XP lost)
+            renderDetailView();
+        }
+
+        // --- DATA VAULT (BACKUP/RESTORE) ---
+        function openDataModal() {
+            const m = document.getElementById('dataModal');
             
-            // Always close the modal
-            modal.classList.add('hidden');
+            // Reset Hard Reset Button State
+            const btn = document.getElementById('hardResetBtn');
+            btn.removeAttribute('data-confirm');
+            btn.innerHTML = '<i class="ph-bold ph-trash"></i> Hard Reset (Clear All)';
+            btn.classList.remove('bg-red-500', 'text-white');
+            btn.classList.add('text-red-400');
+
+            m.classList.remove('hidden');
+            setTimeout(() => m.classList.remove('opacity-0'), 10);
         }
 
-        // 5. Allow user to set name via clicking the profile icon (Manual Trigger)
-        function changeName() {
-            const currentName = localStorage.getItem('bentobox_user_name') || '';
-            const modal = document.getElementById('setup-modal');
-            const input = document.getElementById('name-input');
+        function closeDataModal() {
+            const m = document.getElementById('dataModal');
+            m.classList.add('opacity-0');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
+
+        function downloadBackup() {
+            const json = JSON.stringify(data);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `study_tracker_backup_${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast("File Downloaded");
+        }
+
+        function restoreBackup(input) {
+            const file = input.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if(imported.realms) {
+                        data.realms = imported.realms;
+                        saveData();
+                        closeDataModal();
+                        showToast("Data Restored!");
+                    } else {
+                        alert("Invalid backup file.");
+                    }
+                } catch(err) {
+                    alert("Error parsing file.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function copyDataString() {
+            const str = JSON.stringify(data);
+            navigator.clipboard.writeText(str).then(() => {
+                showToast("Data copied to clipboard");
+            }).catch(err => {
+                // Fallback
+                const ta = document.createElement('textarea');
+                ta.value = str;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast("Data copied (Fallback)");
+            });
+        }
+
+        function hardReset() {
+            const btn = document.getElementById('hardResetBtn');
             
-            input.value = currentName; // Pre-fill current name
-            modal.classList.remove('hidden'); // Reuse the modal
-            input.focus();
+            if (btn.getAttribute('data-confirm') === 'true') {
+                localStorage.removeItem(APP_KEY);
+                location.reload();
+            } else {
+                btn.setAttribute('data-confirm', 'true');
+                btn.innerHTML = '<i class="ph-bold ph-warning"></i> Confirm Deletion?';
+                btn.classList.remove('text-red-400');
+                btn.classList.add('bg-red-500', 'text-white');
+                
+                setTimeout(() => {
+                    btn.removeAttribute('data-confirm');
+                    btn.innerHTML = '<i class="ph-bold ph-trash"></i> Hard Reset (Clear All)';
+                    btn.classList.remove('bg-red-500', 'text-white');
+                    btn.classList.add('text-red-400');
+                }, 3000);
+            }
         }
 
-        // 6. Update Schedule Widget Subtitle
-        function updateScheduleWidget() {
-            const scheduleElement = document.getElementById('schedule-day');
-            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const today = days[new Date().getDay()];
-            scheduleElement.textContent = today;
+        // --- UTILS ---
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            t.style.transform = "translate(-50%, 0)";
+            setTimeout(() => {
+                t.style.transform = "translate(-50%, -100px)";
+            }, 2000);
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            updateDate();
-            updateGreeting();
-            updateScheduleWidget();
-            checkFirstVisit(); // Check if we need to ask for name
-        });
+        function confettiEffect() {
+            const colors = ['#5856D6', '#AF52DE', '#34C759', '#FFCC00'];
+            for(let i=0; i<30; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                c.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 3000);
+            }
+        }
+
+        // Boot
+        init();
+
     </script>
 </body>
 </html>
