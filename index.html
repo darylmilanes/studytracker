@@ -37,7 +37,7 @@
                     animation: {
                         'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                         'pop': 'pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                        'fade-in': 'fadeIn 0.2s ease-out',
+                        'shake': 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both',
                     },
                     keyframes: {
                         slideUp: {
@@ -48,9 +48,11 @@
                             '0%': { transform: 'scale(0.9)' },
                             '100%': { transform: 'scale(1)' }
                         },
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' }
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
                         }
                     }
                 }
@@ -99,13 +101,14 @@
             transform: scale(1);
         }
         
-        /* CONFETTI (Simple CSS particle) */
+        /* CONFETTI */
         .confetti {
             position: absolute;
             width: 8px;
             height: 8px;
             background: #f00;
             animation: fall linear forwards;
+            z-index: 100;
         }
         @keyframes fall {
             to { transform: translateY(100vh) rotate(720deg); }
@@ -125,7 +128,7 @@
                 <p class="text-[10px] text-gray-500 font-medium">Quest Edition</p>
             </div>
         </div>
-        <button onclick="openDataModal()" class="w-8 h-8 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-zinc-700 transition-colors">
+        <button onclick="openDataModal()" class="w-9 h-9 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-zinc-700 transition-colors">
             <i class="ph-fill ph-shield-check text-lg"></i>
         </button>
     </header>
@@ -197,12 +200,14 @@
     <!-- MODAL: REALM DETAILS (QUEST LIST) -->
     <div id="realmDetailModal" class="fixed inset-0 z-50 bg-ios-bg dark:bg-ios-dark-bg hidden flex flex-col transition-transform translate-x-full duration-300">
         <!-- Detail Header -->
-        <div class="glass px-5 py-4 flex items-center justify-between flex-shrink-0">
+        <div class="glass px-5 py-3 flex items-center justify-between flex-shrink-0">
             <button onclick="closeRealmDetail()" class="flex items-center gap-1 text-indigo-600 font-medium active:opacity-50">
                 <i class="ph-bold ph-caret-left text-lg"></i> Back
             </button>
-            <h2 id="detailTitle" class="font-bold text-lg">Realm Name</h2>
-            <button id="deleteRealmBtn" onclick="deleteCurrentRealm()" class="text-red-400 p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1">
+            <h2 id="detailTitle" class="font-bold text-lg truncate px-2">Realm Name</h2>
+            
+            <!-- DELETE REALM BUTTON -->
+            <button id="deleteRealmBtn" onclick="deleteCurrentRealm()" class="w-10 h-10 flex items-center justify-center text-red-400 bg-red-50 dark:bg-red-900/20 rounded-full transition-all duration-200">
                 <i class="ph-bold ph-trash text-lg"></i>
             </button>
         </div>
@@ -240,7 +245,7 @@
 
     <!-- MODAL: DATA VAULT (Backup/Restore) -->
     <div id="dataModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm hidden opacity-0 transition-opacity">
-        <div class="bg-white dark:bg-zinc-900 w-[90%] max-w-sm rounded-[24px] p-6 shadow-2xl relative">
+        <div class="bg-white dark:bg-zinc-900 w-[90%] max-w-sm rounded-[24px] p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto no-scrollbar">
             <button onclick="closeDataModal()" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center"><i class="ph-bold ph-x"></i></button>
             
             <div class="text-center mb-6">
@@ -275,14 +280,27 @@
                     </button>
                 </div>
 
-                <!-- Copy String -->
-                <button onclick="copyDataString()" class="w-full bg-transparent border border-gray-200 dark:border-zinc-700 text-gray-500 p-3 rounded-xl flex items-center justify-center gap-2 text-xs font-bold active:scale-95 transition-transform">
-                    <i class="ph-bold ph-copy"></i> Copy Data String
-                </button>
+                <!-- Copy/Paste String -->
+                <div class="grid grid-cols-2 gap-3">
+                     <button onclick="copyDataString()" class="w-full bg-transparent border border-gray-200 dark:border-zinc-700 text-gray-500 p-3 rounded-xl flex items-center justify-center gap-2 text-xs font-bold active:scale-95 transition-transform">
+                        <i class="ph-bold ph-copy"></i> Copy Key
+                    </button>
+                     <button onclick="togglePasteInput()" class="w-full bg-transparent border border-gray-200 dark:border-zinc-700 text-gray-500 p-3 rounded-xl flex items-center justify-center gap-2 text-xs font-bold active:scale-95 transition-transform">
+                        <i class="ph-bold ph-clipboard-text"></i> Paste Key
+                    </button>
+                </div>
+                
+                <!-- Paste Area (Hidden by default) -->
+                <div id="pasteContainer" class="hidden space-y-2 pt-2 border-t border-gray-100 dark:border-zinc-800">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase">Paste Data String Below:</p>
+                    <textarea id="pasteInput" rows="3" class="w-full bg-gray-50 dark:bg-zinc-800 p-3 rounded-xl text-xs font-mono outline-none border border-transparent focus:border-indigo-500" placeholder='{"realms":...}'></textarea>
+                    <button onclick="restoreFromString()" class="w-full bg-black dark:bg-white text-white dark:text-black font-bold py-3 rounded-xl text-xs">Import Data</button>
+                </div>
             </div>
 
             <div class="mt-6 pt-4 border-t border-gray-100 dark:border-zinc-800 text-center">
-                <button id="hardResetBtn" onclick="hardReset()" class="w-full py-3 text-red-400 font-bold uppercase text-[10px] rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors flex items-center justify-center gap-2">
+                <!-- HARD RESET BUTTON -->
+                <button id="hardResetBtn" onclick="hardReset()" class="w-full py-4 rounded-xl font-bold text-xs uppercase transition-all duration-200 text-red-500 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 flex items-center justify-center gap-2">
                     <i class="ph-bold ph-trash"></i> Hard Reset (Clear All)
                 </button>
             </div>
@@ -308,11 +326,12 @@
         ];
 
         let data = {
-            realms: [] // { id, name, created, quests: [] }
+            realms: [] 
         };
 
         let currentRealmId = null;
-        let deleteTimer = null; // For double-tap confirmations
+        let deleteRealmTimer = null;
+        let hardResetTimer = null;
 
         // --- INIT ---
         function init() {
@@ -335,8 +354,6 @@
         function calculateTotalXP() {
             let total = 0;
             data.realms.forEach(realm => {
-                // Ensure we only count based on EXISTING quests
-                // This prevents "XP farming" where user deletes and re-adds tasks
                 const completedCount = realm.quests.filter(q => q.done).length;
                 total += completedCount * 10;
             });
@@ -422,13 +439,8 @@
             const m = document.getElementById('addRealmModal');
             const c = document.getElementById('addRealmCard');
             document.getElementById('newRealmName').value = '';
-            
             m.classList.remove('hidden');
-            setTimeout(() => {
-                m.classList.remove('opacity-0');
-                c.classList.remove('translate-y-full'); 
-            }, 10);
-            
+            setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('translate-y-full'); }, 10);
             setTimeout(() => document.getElementById('newRealmName').focus(), 100);
         }
 
@@ -443,14 +455,7 @@
         function createNewRealm() {
             const name = document.getElementById('newRealmName').value.trim();
             if (!name) return;
-
-            const newRealm = {
-                id: Date.now().toString(),
-                name: name,
-                created: Date.now(),
-                quests: []
-            };
-
+            const newRealm = { id: Date.now().toString(), name: name, created: Date.now(), quests: [] };
             data.realms.unshift(newRealm);
             saveData();
             closeAddRealmModal();
@@ -461,50 +466,41 @@
             if (!currentRealmId) return;
             const btn = document.getElementById('deleteRealmBtn');
             
-            // Double Tap Logic to replace confirm()
-            if (btn.getAttribute('data-confirm') === 'true') {
-                // Second Tap - Delete
+            // Double Tap Logic
+            if (btn.dataset.confirm === "true") {
+                // ACTION
                 data.realms = data.realms.filter(r => r.id !== currentRealmId);
                 saveData(); 
                 closeRealmDetail();
                 showToast("Realm Deleted");
-                
-                // Reset Btn
-                btn.removeAttribute('data-confirm');
-                btn.innerHTML = '<i class="ph-bold ph-trash text-lg"></i>';
-                btn.classList.remove('bg-red-500', 'text-white');
-                btn.classList.add('text-red-400');
+                resetDeleteRealmBtn(btn);
             } else {
-                // First Tap - Ask
-                btn.setAttribute('data-confirm', 'true');
-                btn.innerHTML = '<span class="text-xs font-bold px-2">Sure?</span>';
-                btn.classList.remove('text-red-400');
-                btn.classList.add('bg-red-500', 'text-white');
+                // WARNING
+                btn.dataset.confirm = "true";
+                btn.classList.remove('text-red-400', 'bg-red-50', 'dark:bg-red-900/20');
+                btn.classList.add('w-auto', 'px-4', 'bg-red-600', 'text-white', 'shadow-lg', 'animate-shake'); // Make it big and red
+                btn.innerHTML = "<span class='text-xs font-bold whitespace-nowrap'>TAP TO CONFIRM</span>";
                 
-                // Timeout reset
-                clearTimeout(deleteTimer);
-                deleteTimer = setTimeout(() => {
-                    btn.removeAttribute('data-confirm');
-                    btn.innerHTML = '<i class="ph-bold ph-trash text-lg"></i>';
-                    btn.classList.remove('bg-red-500', 'text-white');
-                    btn.classList.add('text-red-400');
-                }, 3000);
+                clearTimeout(deleteRealmTimer);
+                deleteRealmTimer = setTimeout(() => resetDeleteRealmBtn(btn), 3000);
             }
+        }
+
+        function resetDeleteRealmBtn(btn) {
+            btn.dataset.confirm = "false";
+            btn.classList.remove('w-auto', 'px-4', 'bg-red-600', 'text-white', 'shadow-lg', 'animate-shake');
+            btn.classList.add('text-red-400', 'bg-red-50', 'dark:bg-red-900/20');
+            btn.innerHTML = '<i class="ph-bold ph-trash text-lg"></i>';
         }
 
         // --- DETAIL VIEW LOGIC ---
         function openRealmDetail(id) {
             currentRealmId = id;
             renderDetailView();
-            const modal = document.getElementById('realmDetailModal');
+            // Reset delete button state every time we open
+            resetDeleteRealmBtn(document.getElementById('deleteRealmBtn'));
             
-            // Reset delete button state
-            const btn = document.getElementById('deleteRealmBtn');
-            btn.removeAttribute('data-confirm');
-            btn.innerHTML = '<i class="ph-bold ph-trash text-lg"></i>';
-            btn.classList.remove('bg-red-500', 'text-white');
-            btn.classList.add('text-red-400');
-
+            const modal = document.getElementById('realmDetailModal');
             modal.classList.remove('hidden');
             setTimeout(() => modal.classList.remove('translate-x-full'), 10);
         }
@@ -540,14 +536,16 @@
                 div.className = 'flex items-center gap-3 bg-white dark:bg-zinc-900 p-3 rounded-xl border border-gray-100 dark:border-zinc-800 shadow-sm';
                 
                 div.innerHTML = `
-                    <label class="relative flex items-center cursor-pointer">
+                    <label class="relative flex items-center cursor-pointer p-1">
                         <input type="checkbox" class="quest-checkbox sr-only" ${quest.done ? 'checked' : ''} onchange="toggleQuest(${index})">
                         <div class="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-zinc-600 flex items-center justify-center transition-colors">
                             <i class="ph-bold ph-check text-white text-xs transform scale-0 transition-transform"></i>
                         </div>
                     </label>
-                    <span class="text-sm font-medium ${quest.done ? 'line-through text-gray-400' : ''}">${quest.text}</span>
-                    <button onclick="event.stopPropagation(); deleteQuest(${index})" class="ml-auto text-gray-300 hover:text-red-400 p-2"><i class="ph-bold ph-x text-lg"></i></button>
+                    <span class="text-sm font-medium ${quest.done ? 'line-through text-gray-400' : ''} flex-grow">${quest.text}</span>
+                    <button onclick="deleteQuest(event, ${index})" class="text-gray-300 hover:text-red-500 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 active:scale-95 transition-all">
+                        <i class="ph-bold ph-x text-lg"></i>
+                    </button>
                 `;
 
                 if(quest.done) doneContainer.appendChild(div);
@@ -561,10 +559,8 @@
             const input = document.getElementById('newQuestInput');
             const text = input.value.trim();
             if (!text) return;
-
             const realm = data.realms.find(r => r.id === currentRealmId);
             realm.quests.push({ text: text, done: false, created: Date.now() });
-            
             input.value = '';
             saveData();
             renderDetailView();
@@ -574,34 +570,26 @@
             const realm = data.realms.find(r => r.id === currentRealmId);
             const quest = realm.quests[index];
             quest.done = !quest.done;
-
-            if (quest.done) {
-                confettiEffect();
-                showToast("+10 XP");
-            }
-
-            saveData(); // XP updates based on current state
+            if (quest.done) { confettiEffect(); showToast("+10 XP"); }
+            saveData(); 
             renderDetailView();
         }
 
-        function deleteQuest(index) {
+        function deleteQuest(event, index) {
+            // Stop event bubbling so it doesn't trigger other clicks if any
+            event.stopPropagation();
+            
             const realm = data.realms.find(r => r.id === currentRealmId);
             realm.quests.splice(index, 1);
-            saveData(); // XP updates based on current state (removed quest = XP lost)
+            saveData(); 
             renderDetailView();
         }
 
-        // --- DATA VAULT (BACKUP/RESTORE) ---
+        // --- DATA VAULT ---
         function openDataModal() {
             const m = document.getElementById('dataModal');
-            
-            // Reset Hard Reset Button State
-            const btn = document.getElementById('hardResetBtn');
-            btn.removeAttribute('data-confirm');
-            btn.innerHTML = '<i class="ph-bold ph-trash"></i> Hard Reset (Clear All)';
-            btn.classList.remove('bg-red-500', 'text-white');
-            btn.classList.add('text-red-400');
-
+            document.getElementById('pasteContainer').classList.add('hidden');
+            resetHardResetBtn(document.getElementById('hardResetBtn'));
             m.classList.remove('hidden');
             setTimeout(() => m.classList.remove('opacity-0'), 10);
         }
@@ -610,6 +598,12 @@
             const m = document.getElementById('dataModal');
             m.classList.add('opacity-0');
             setTimeout(() => m.classList.add('hidden'), 300);
+        }
+
+        function togglePasteInput() {
+            const div = document.getElementById('pasteContainer');
+            div.classList.toggle('hidden');
+            if(!div.classList.contains('hidden')) document.getElementById('pasteInput').focus();
         }
 
         function downloadBackup() {
@@ -628,61 +622,77 @@
         function restoreBackup(input) {
             const file = input.files[0];
             if(!file) return;
-
             const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if(imported.realms) {
-                        data.realms = imported.realms;
-                        saveData();
-                        closeDataModal();
-                        showToast("Data Restored!");
-                    } else {
-                        alert("Invalid backup file.");
-                    }
-                } catch(err) {
-                    alert("Error parsing file.");
-                }
-            };
+            reader.onload = function(e) { processRestore(e.target.result); };
             reader.readAsText(file);
+        }
+
+        function restoreFromString() {
+            const str = document.getElementById('pasteInput').value.trim();
+            if(!str) return;
+            processRestore(str);
+        }
+
+        function processRestore(jsonString) {
+            try {
+                const imported = JSON.parse(jsonString);
+                if(imported.realms) {
+                    data.realms = imported.realms;
+                    saveData();
+                    closeDataModal();
+                    showToast("Data Restored!");
+                } else {
+                    alert("Invalid data format.");
+                }
+            } catch(err) {
+                alert("Error parsing data.");
+            }
         }
 
         function copyDataString() {
             const str = JSON.stringify(data);
-            navigator.clipboard.writeText(str).then(() => {
-                showToast("Data copied to clipboard");
-            }).catch(err => {
-                // Fallback
+            navigator.clipboard.writeText(str).then(() => { showToast("Data copied"); })
+            .catch(err => {
                 const ta = document.createElement('textarea');
-                ta.value = str;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-                showToast("Data copied (Fallback)");
+                ta.value = str; document.body.appendChild(ta); ta.select();
+                document.execCommand('copy'); document.body.removeChild(ta);
+                showToast("Data copied");
             });
         }
 
         function hardReset() {
             const btn = document.getElementById('hardResetBtn');
             
-            if (btn.getAttribute('data-confirm') === 'true') {
+            if (btn.dataset.confirm === "true") {
+                // EXECUTE RESET
                 localStorage.removeItem(APP_KEY);
-                location.reload();
-            } else {
-                btn.setAttribute('data-confirm', 'true');
-                btn.innerHTML = '<i class="ph-bold ph-warning"></i> Confirm Deletion?';
-                btn.classList.remove('text-red-400');
-                btn.classList.add('bg-red-500', 'text-white');
                 
-                setTimeout(() => {
-                    btn.removeAttribute('data-confirm');
-                    btn.innerHTML = '<i class="ph-bold ph-trash"></i> Hard Reset (Clear All)';
-                    btn.classList.remove('bg-red-500', 'text-white');
-                    btn.classList.add('text-red-400');
-                }, 3000);
+                // Clear Internal State Manually
+                data = { realms: [] };
+                currentRealmId = null;
+                
+                // Update UI Immediately
+                renderDashboard();
+                closeDataModal();
+                showToast("All Data Wiped");
+                
+                // Reset Button State
+                resetHardResetBtn(btn);
+            } else {
+                // WARNING STATE
+                btn.dataset.confirm = "true";
+                btn.className = "w-full py-4 rounded-xl font-black text-sm uppercase transition-all duration-200 text-white bg-red-600 shadow-lg scale-105 flex items-center justify-center gap-2 animate-shake";
+                btn.innerHTML = "<i class='ph-bold ph-warning'></i> TAP AGAIN TO DELETE ALL";
+                
+                clearTimeout(hardResetTimer);
+                hardResetTimer = setTimeout(() => resetHardResetBtn(btn), 3000);
             }
+        }
+
+        function resetHardResetBtn(btn) {
+            btn.dataset.confirm = "false";
+            btn.className = "w-full py-4 rounded-xl font-bold text-xs uppercase transition-all duration-200 text-red-500 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 flex items-center justify-center gap-2";
+            btn.innerHTML = "<i class='ph-bold ph-trash'></i> Hard Reset (Clear All)";
         }
 
         // --- UTILS ---
@@ -690,9 +700,7 @@
             const t = document.getElementById('toast');
             document.getElementById('toastMsg').innerText = msg;
             t.style.transform = "translate(-50%, 0)";
-            setTimeout(() => {
-                t.style.transform = "translate(-50%, -100px)";
-            }, 2000);
+            setTimeout(() => t.style.transform = "translate(-50%, -100px)", 2000);
         }
 
         function confettiEffect() {
